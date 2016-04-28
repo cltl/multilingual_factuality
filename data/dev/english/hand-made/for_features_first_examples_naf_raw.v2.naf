@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<NAF xml:lang="en" version="3.0">
-  <raw><![CDATA[He did it. 
+<NAF version="v3" xml:lang="en">
+<raw>He did it.
 He will do it.
 He never did it.
 He has done it.
@@ -60,5 +60,6 @@ The man gave the pretty girl a book.
 No one gave the pretty girl a book.
 The man gave no pretty girl a book.
 The man gave the pretty girl no book.
-The man gave the pretty girl not a single book.]]></raw>
+The man gave the pretty girl not a single book.
+The girl did not come and help.</raw>
 </NAF>
