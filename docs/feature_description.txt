@@ -1,0 +1,312 @@
+Target Events and Features (with examples)
+
+ALL EXAMPLES COME FROM FILES IN THE DEVELOPMENT DATA
+
+data/dev/english/hand-made/for_features_first_examples_nwrv3_out.v2.naf
+data/dev/dutch/hand-made/for_features_first_examples_nwrv3_out.v2.naf
+
+
+For list output: [x, y, z] is one output (one event/one feature), [[x,y], [z]] are two different outputs
+
+
+
+####################################
+# <EXAMPLE_1> in test_feature_extractor.py
+####################################
+
+Target event selection: Target events come from the coreference layer, we need all event mentions
+Input: coreference layer, coref elements of type ‘event’
+Output: list of term id(s) of each span (each span is a different target event)
+Examples:
+English: 
+Input: coevent8
+Output (total 40 target events, presenting first 5): [t2], [t7], [t12], [t17], [t22]
+Dutch:
+Input: coevent1
+Output (39 in total, presenting first 5): [t_241], [t_119], [t_161], [t_147], [t_75]
+
+
+
+
+Target Event features
+
+####################################
+# <EXAMPLE_2> in test_feature_extractor.py
+####################################
+
+Feature: event lemma
+Input: term id
+Output: lemma of term
+Examples
+English
+Input: t2
+Output: do
+Dutch
+Input: t_241
+Output: doen
+
+####################################
+# <EXAMPLE_3> in test_feature_extractor.py
+####################################
+
+Feature: event tense: information about the tense of the verb, or available morphological information
+Input: term id
+Output: morphofeat of term
+Examples
+English
+Input: t2
+Output: VBD
+Dutch
+Input: t_241
+Output: WW(vd,vrij,zonder)
+
+
+####################################
+# <EXAMPLE_4> in test_feature_extractor.py
+####################################
+
+Feature: modifiers of the target event
+Input: term id
+Output: dependency relation and surface form of modifier (2 related features)
+Examples
+English 
+(sentence 3 (basic))
+Input: t12
+Output: [TMP, never]
+(sentence 15 (complex modifier))
+Input: t82
+Output: [ADV, almost certainly]
+(sentence 19; assuming it would be identified as an event (nominal event))
+Input: t108
+Output: [NMOD, no]
+Dutch 
+(sentence 3 (basic))
+Input: t_13
+Output: [hd/mod, nooit]
+(sentence 13 (complex))
+Input: t_75
+Output: [hd/mod, vrijwel zeker]
+(sentence 15, assuming it would be identified as an event (nominal event))
+Input: t_85
+Output: [hd/det, geen]
+
+
+Verbal chain features
+
+We need several bits of information from the verbal chains. They are probably best extracted simultaneously, but for clarity they are described separately. I will start with the selection (which terms are part of the chain). The term identifiers are not features themselves, but serve as a basis of the following features.
+
+Feature selection: all verbal forms that govern the target event (i.e. a path from the target event to the root). Note that this is not a feature, but it illustrates how the candidates for verbal chain features are selected.
+Input: term id
+Output: list of term ids from target to root (to be used in this order as input for following features)
+English 
+(sentence 7: complex verbal group):
+Input: t36
+Output: [t35, t34,t33,t32]
+(sentence 16: nominal event):
+Input: t89
+Output: [t87,t86]
+(sentence 26, matrix clause):
+Input: t150
+Output: [t148]
+(sentence 11, negation in verbal group):
+Input: t61
+Output: [t60, t58]
+(sentence 32, matrix verb negated):
+Input: t193
+Output: [t191, t189]
+(sentence 43, matrix verb modified): 
+Input: t265
+Output: [t264]
+Dutch 
+(sentence 5: complex verbal cluster)
+Input: t_22
+Output: [t_24, t_23, t_20]
+(sentence 14: nominal event):
+Input: t_80
+Output: [t_78]
+(sentence 23: matrix clause):
+Input: t_132
+Output: [t_129, t_128]
+(sentence 19: negation in verbal group):
+Input: t_109
+Output: [t_110, t_106]
+(sentence 24, matrix verb negated):
+Input: t_140
+Output: [t_137, t_135]
+
+Feature: lemmas all verbal forms that govern the target event (i.e. a path from the target event to the root). 
+Input: term id
+Output: list of lemmas from target to root (to be used in this order as input for following features)
+English 
+(sentence 7: complex verbal group):
+Input: t36
+Output: [to, able, be, may]
+(sentence 16: nominal event):
+Input: t89
+Output: [have,be]
+(sentence 26, matrix clause):
+Input: t150
+Output: [say]
+(sentence 32, matrix verb negated):
+Input: t193
+Output: [believe, do]
+Dutch 
+(sentence 5: complex verbal cluster)
+Input: t_22
+Output: [hebben, kunnen, zullen]
+(sentence 14: nominal event):
+Input: t_80
+Output: [geven]
+(sentence 23: matrix clause):
+Input: t_132
+Output: [dat, zeggen]
+
+Feature: morphofeat all verbal forms that govern the target event (i.e. a path from the target event to the root). 
+Input: term id
+Output: list of morphofeat from target to root (to be used in this order as input for following features)
+English 
+(sentence 7: complex verbal group):
+Input: t36
+Output: [TO, JJ, VB, MD]
+(sentence 16: nominal event):
+Input: t89
+Output: [VBG,VBZ]
+(sentence 26, matrix clause):
+Input: t150
+Output: [VBD]
+(sentence 32, matrix verb negated):
+Input: t193
+Output: [VB, VBZ]
+Dutch 
+(sentence 5: complex verbal cluster)
+Input: t_22
+Output: [WW(inf,vrij,zonder), WW(inf,vrij,zonder), WW(pv,verl,ev)]
+(sentence 14: nominal event):
+Input: t_80
+Output: [WW(pv,tgw,met-t)]
+(sentence 23: matrix clause):
+Input: t_132
+Output: [VG(onder), WW(pv,verl,ev)]
+
+Feature: modifiers of all verbal forms that govern the target event (i.e. a path from the target event to the root). 
+Input: term id
+Output: list of modifier features for each verbal form from target to root (to be used in this order as input for following features)
+English 
+(sentence 7: complex verbal group):
+Input: t36
+Output: [NONE, NONE, NONE, NONE]
+(sentence 16: nominal event):
+Input: t89
+Output: [NONE , NONE]
+(sentence 26, matrix clause):
+Input: t150
+Output: [NONE]
+(sentence 11, negation in verbal group):
+Input: t61
+Output: [NONE, [ADV,not]]
+(sentence 32, matrix verb negated):
+Input: t193
+Output: [NONE, [ADV,not]]
+(sentence 43, matrix verb modified): 
+Input: t265
+Output: [[TMP,never]]
+Dutch 
+(sentence 5: complex verbal cluster)
+Input: t_22
+Output: [NONE, NONE, NONE]
+(sentence 14: nominal event):
+Input: t_80
+Output: [NONE]
+(sentence 23: matrix clause):
+Input: t_132
+Output: [NONE, NONE]
+(sentence 19: negation in verbal group):
+Input: t_109
+Output: [[hd/mod, misschien], NONE]
+(sentence 24, matrix verb negated):
+Input: t_140
+Output: [NONE, [hd/mod, niet]]
+
+Feature Selection: Components of the target verb’s argument (we want to know if they contain negation). This provides the selection mechanism.
+Input: term id of target event
+Output: list of the term ids argument (each argument is a list of target ids). The list for a single argument can be obtained by taking the head of the argument (the direct dependent of the verb) and all its (embedded) dependents. A recursive function already exists in the KafNafParserPy (dependency feature extractor)
+Examples
+English
+(sentence 53, multiple token argument)
+Input: t337
+Output: [[t331, t332, t333, t334, t335, t336]]
+(sentence 56, ditransitive with larger arguments)
+Input: t364
+Output: [[t362, t363],[t365, t366, t367],[t368, t369]]
+(sentence 57, multiple token argument with negation)
+Input: t373
+Output: [[t371, t372], [t374, t375, t376],[t373, t378]]
+(sentence 58, multiple token argument with negation)
+Input: t382
+Output: [[t380, t381],[t383,t384,t385],[t386, t387]]
+(sentence 59, multiple token argument with negation)
+Input: t391
+Output: [[t389, t390],[t392, t393, t394],[t395, t396]]
+(sentence 60, multiple token argument with negation)
+Input: t400
+Output: [[t398, t399],[t401, t402, t403],[t404, t405, t406, t407]]
+Dutch 
+(sentence 51, multiple token argument)
+Input: t_353
+Output: [[t_346, t_347, t_348, t_349, t_350, t_351, t_352]]
+(sentence 57, ditransitive with multiple token arguments)
+Input: t_394
+Output: [[t_392, t_393], [t_395, t_396, t_397] [t_398, t_399]]
+(sentence 58, multiple token argument)
+Input: t_409
+Output: [[t_401, t_402],[t_404, t_405, t_406], [t_407, t_408]]
+(sentence 59, multiple token argument)
+Input: t_413
+Output: [[t_411, t_412], [t_414, t_415, t_416, t_417], [t_418, t_419]]
+(sentence 60, multiple token argument)
+Input: t_423
+Output [[t_421, t_422], [t_424, t_425, t_426], [t_427, t_428]]
+
+
+Feature: Lemmas of the target verb’s argument 
+Input: term id of target event
+Output: list of the lemmas of each argument
+Examples
+English
+(sentence 53, multiple token argument)
+Input: t337
+Output: [[neither, the, girl, nor, the, boy]]
+(sentence 56, ditransitive with larger arguments)
+Input: t364
+Output: [[the, man],[the, pretty, girl],[a, book]]
+(sentence 57, multiple token argument with negation)
+Input: t373
+Output: [[no, one], [the, pretty, girl], [a, book]]
+(sentence 58, multiple token argument with negation)
+Input: t382
+Output: [[the, man], [no, pretty, girl], [a, book]]
+(sentence 59, multiple token argument with negation)
+Input: t391
+Output: [[the, man], [the, pretty, girl], [no, book]]
+(sentence 60, multiple token argument with negation)
+Input: t400
+Output: [[the, man], [the, pretty, girl], [not, a, single, book]]
+Dutch
+(sentence 51, multiple token argument)
+Input: t_353
+Output: [[t_346, t_347, t_348, t_349, t_350, t_351, t_352]]
+(sentence 57, ditransitive with multiple token arguments)
+Input: t_394
+Output: [[t_392, t_393], [t_395, t_396, t_397] [t_398, t_399]]
+(sentence 58, multiple token argument)
+Input: t_409
+Output: [[geen, man],[het, mooi, meisje], [een, boek]]
+(sentence 59, multiple token argument)
+Input: t_413
+Output: [[een, boek], [geen, een, mooi, meisje], [een, boek]]
+(sentence 60, multiple token argument)
+Input: t_423
+Output [[de, man], [een, mooi, meisje], [geen, boek]]
+
++++++++CONDITIONAL AND COORDINATION: FOR VERSION 0.2+++++++++
+
