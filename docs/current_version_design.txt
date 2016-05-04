@@ -55,4 +55,12 @@ Ex:
 [en] He came.
 [du] Hij kwam.
 
+####################
+TODOs:
+
+* What to do with complex factuality values:
+
+He stopped singing (Fact=[CERTAIN,POS,PAST & CERTAIN,NEG,NON_FUTURE])
+He starts to sing (Fact=[CERTAIN,NEG,PAST & CERTAIN,POS,PRESENT])
+
 
