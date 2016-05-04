@@ -1,0 +1,5 @@
+kunnen	[certainty=POSSIBLE]
+mogen	[certainty=POSSIBLE]
+moeten	[certainty=POSSIBLE]
+zullen	[tense=FUTURE]
+zouden	[polarity=NEG, certainty=POSSIBLE]

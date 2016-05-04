@@ -1,0 +1,13 @@
+Basic for development:
+
+Simple lists of modal verbs, modifiers, etc.
+
+TODO:
+
+zouden: depends on whether embedded (matrix-verb) or not, if matrix verb `zouden' is neutral:
+hij dacht dat hij zou komen (factuality 'komen' determined by matrix verb 'dacht')
+hij zou komen (zouden implies there is no evidence he is there...)
+
+What to do with the tense/time of processes leading to some change. The difference between:
+
+Hij wordt gemaakt./hij is gemaakt.

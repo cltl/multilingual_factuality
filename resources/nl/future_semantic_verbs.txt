@@ -1,3 +1,4 @@
+[SELF]/TENSE:FUTURE
 komen
 gaan
 worden
