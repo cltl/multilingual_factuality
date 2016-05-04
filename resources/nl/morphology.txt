@@ -1,0 +1,4 @@
+[ALL]/TENSE:NON_FUTURE
+WW(pv,verl,ev)
+WW(pv,verl,mv)
+WW(vd,vrij,zonder)
