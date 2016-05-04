@@ -1,0 +1,58 @@
+Current version: 0.1
+
+May 4th 2016.
+
+Preliminary version, see below for near & later future work. 
+
+Covering:
+
+Basic rule system:
+
+1. lemmas and morphology based mapping rules
+2. no multiwords/interaction between features
+3. no scope (factuality assigned to event as a whole)
+4. basic Dutch resources 
+
+System overview:
+
+PREP:
+
+Parse naffile
+Read in resources
+
+STEP 1:
+
+Event and feature extraction as described in.
+(see feature_description.txt for overview of target events and features).
+
+STEP 2:
+
+Assign default factuality values (CERTAIN, POS, NON_FUTURE) to all events.
+
+STEP 3:
+
+Hierarchical rule based system: any new information overwrites previous observations.
+The order of application is based on examples. Interactions between features of different levels (e.g. negation and SIP) are left for future versions.
+
+STEP 4:
+Output NAF
+
+Current Rules:
+
+1. Information from target verb itself:
+
+- some verbs have a bias towards the future. If one of these verbs, assign future tense.
+
+Ex:
+[en] He is coming (compare: he is smiling)
+[du] Hij komt (vs. hij lacht)
+
+2. Information from morphology:
+
+- If the above verbs are in past tense, they are not future (reassign NON-FUTURE) 
+
+Ex:
+[en] He came.
+[du] Hij kwam.
+
+
