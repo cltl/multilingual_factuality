@@ -1,5 +1,20 @@
-kunnen	[certainty=POSSIBLE]
-mogen	[certainty=POSSIBLE]
-moeten	[certainty=POSSIBLE]
-zullen	[tense=FUTURE]
-zouden	[polarity=NEG, certainty=POSSIBLE]
+[DEP]/CERTAINTY:POSSIBLE
+kunnen
+moeten
+mogen
+lijken
+willen
+zouden
+[DEP]/CERTAINTY:PROBABLE
+schijnen
+[DEP]/TENSE:FUTURE
+gaan
+zullen
+[DEP]/POLARITY:NEG
+ontkennen
+stoppen
+[DEP]/CERTAINTY:POSSIBLE/TENSE:FUTURE
+beloven
+[DEP]/CERTAINTY:PROBABLE/TENSE:FUTURE
+denken
+verwachten
