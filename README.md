@@ -10,15 +10,12 @@ The scripts to run the module are located at feature_extractor/
 
 1. On a single file:
 
-cat inputfile | python rule_based_factuality.py path-to-module-main-dir > outputfile
+cat inputfile | python rule_based_factuality.py > outputfile
 
-when run from the feature_extractor directory: 
-
-cat inputfile | python rule_based_factuality.py ../ > outputfile
 
 2. For a directory:
 
-./run_rule_based_on_dir.sh inputdir/ outputdir/ path-to-module-main-dir
+./run_rule_based_on_dir.sh inputdir/ outputdir/ 
 
 
 
