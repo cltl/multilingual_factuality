@@ -1,14 +1,25 @@
 import sys
 import os
-from KafNafParserPy import KafNafParser
+import time
+from KafNafParserPy import *
 from my_feature_extractor import FeatureExtractor
 
+# Version. May 9th: version 0.01 
+#(many minor revisions in resources and code expected in near feature)
+
+versionnr='0.01'
+
+
+#global objects for storing relevant information
+
+modals = {}
+resource_info = {}
 
 class EventFeatures:
     
-    def __init__(self, targetSpan = []):
+    def __init__(self, target_span = []):
         
-        self.targetSpan = targetSpan
+        self.target_span = target_span
         self.target_lemmas = []
         self.target_morphofeats = []
         self.target_mods = []
@@ -26,13 +37,14 @@ class EventFeatures:
 class AssignedFact:
     
     
-    def __init__(self):
+    def __init__(self, span=[]):
         '''
         Initiation always assigns default values
         '''    
         self.certainty = 'CERTAIN'
         self.polarity = 'POS'
         self.time = 'NON_FUTURE'
+        self.span = span
         
     def add_value(self, feature, value):
         '''
@@ -79,11 +91,12 @@ def apply_rule(factVals, target, mappings):
             
 
 
-def apply_target_features(factVals, eventFeatures, resource_info):
+def apply_target_features(factVals, eventFeatures):
     '''
     Functions that applies changes to factuality based on the target verb itself
     '''
     #first lemmas (for future), can then be overwritten by tense marking
+    global resource_info
     for lemma in eventFeatures.target_lemmas:
         if lemma in resource_info:
             val = resource_info.get(lemma)
@@ -96,26 +109,66 @@ def apply_target_features(factVals, eventFeatures, resource_info):
             apply_rule(factVals, '[SELF]', val)
 
 
-def apply_predicative_chain_features(factVals, eventFeatures, resource_info):
+def apply_predicate_chain_features(factVals, eventFeatures, factuality_info):
     '''
-    Functions that examine the predicative chain and adapt factuality values accordingly
+    Function that examines the predicate chain and adapt factuality values accordingly
     '''
+    
     for predicate in eventFeatures.predicate_chain_lemmas:
-        if predicate in resource_info:
-            val = resource_info.get(predicate)
+        if predicate in factuality_info:
+            val = factuality_info.get(predicate)
             apply_rule(factVals, '[DEP]', val)
+            
+            
+def apply_modifier_target_and_chain_features(factVals, eventFeatures):
+    '''
+    Function that checks the possible impact of modifiers
+    '''
+    global resource_info
+    
+    ##will be changed: kind of predicate + modifier interact
+    
+    #first predicate chain modifiers
+    #FIXME: data structure for passing on modifiers does not make sense (tuple in list in list...)
+    for modifier in eventFeatures.predicate_chain_mods:
+        if modifier != None:
+            for mod in modifier:
+                if mod[1] in resource_info:
+                    val = resource_info.get(mod[1])
+                    apply_rule(factVals, '[HEAD]', val)
+    
+    #then target modifiers
+    for modifier in eventFeatures.target_mods:
+        if modifier[1] in resource_info:
+            val = resource_info.get(modifier[1])
+            apply_rule(factVals, '[HEAD]', val)
+    
+
+def apply_argument_features(factVals, eventFeatures):
+    '''
+    Function that changes values based on components of arguments
+    '''  
+    
+    negation_words = ['geen','noch','niet']
+    
+    for argument in eventFeatures.argument_lemmas:
+        for word in argument:
+            if word.lower() in negation_words:
+                factVals.polarity = 'NEG'
 
 
 def initiate_resources(mylanguage, sourcepath):
     '''
     Reads in all relevant resources and prepares them for being used in rules
     '''
-    resource_loc = sourcepath + '/resources/' + en
-    resource_info = {}
+    global modals, resource_info
+    resource_loc = sourcepath + '/resources/' + mylanguage + '/'
     for f in os.listdir(resource_loc):
         file_features = read_in_features(resource_loc + f)
-        resource_info.update(file_features)
-    return resource_info
+        if 'modal' in f:
+            modals.update(file_features)
+        else:
+            resource_info.update(file_features)
 
 
 
@@ -133,7 +186,7 @@ def get_morphofeats(feature_extractor, span):
     '''
     morphofeats = []
     for tid in span:
-        morphofeats += feature_extractor.get_dependencies_and_modifier(term_id)
+        morphofeats += feature_extractor.get_morphofeat_for_term_id(tid)
     return morphofeats
 
 
@@ -151,7 +204,7 @@ def add_predicate_chain_features(feature_extractor, span, eventObj):
     Function that retrieves predicate chain and collects related features.
     '''
     for tid in span:
-        pred_chain = feature_extractor.get_list_term_ids()
+        pred_chain = feature_extractor.get_list_term_ids_to_root(tid)
         eventObj.predicate_chain_ids = pred_chain
         eventObj.predicate_chain_lemmas = feature_extractor.get_lemmas_for_list_term_ids(pred_chain)
         eventObj.predicate_chain_morphofeats = feature_extractor.get_morphofeat_for_list_term_ids(pred_chain)
@@ -164,8 +217,8 @@ def get_modifiers(feature_extractor, span):
     '''
     modifiers = []
     for tid in span:
-        dep, mods = feature_extractor.get_dependencies_and_modifier(tid)
-        modifiers.append([dep, mods])
+        for dep, mod in feature_extractor.get_dependencies_and_modifier(tid):
+            modifiers.append([dep, mod])
     return modifiers
 
 
@@ -186,22 +239,105 @@ def add_argument_features(feature_extractor, span, eventObj):
     
 ###############################################################################
 #
+# NAF production functions
+#
+###############################################################################
+
+def add_factvalues(value, resource, fnode, source = None):
+    '''
+    Adds a new factuality value to the factuality node
+    '''
+    
+    fVal = Cfactval()
+    fVal.set_resource(resource)
+    fVal.set_value(value)
+    if source != None:
+        fVal.set_source(source)
+    fnode.add_factval(fVal)
+
+
+def create_naf_output(nafobj, events):
+    
+    myFactualityLayer = Cfactualities()
+    fid = 0
+    for key in sorted(events):
+        val = events.get(key)
+        fid += 1
+        fnode = Cfactuality()
+        fnode.set_id('f' + str(fid))
+        fspan = Cspan()
+        for tid in val.span:
+            fspan.add_target_id(tid)
+        fnode.set_span(fspan)
+        
+        add_factvalues(val.certainty, 'nwr:attributionCertainty', fnode, None)
+        add_factvalues(val.polarity, 'nwr:attributionPolarity', fnode, None)
+        add_factvalues(val.time, 'nwr:attributionTense', fnode, None)
+        myFactualityLayer.add_factuality(fnode)
+
+    #add factuality node to parser
+    nafobj.root.append(myFactualityLayer.get_node())
+
+def add_naf_header(nafobj, begintime):
+    
+    global versionnr
+    
+    endtime = time.strftime('%Y-%m-%dT%H:%M:%S%Z')
+    lp = Clp(name="vua-multilingual-factuality-system",version=versionnr,btimestamp=begintime,etimestamp=endtime)
+    nafobj.add_linguistic_processor('factualities', lp)
+
+
+    
+###############################################################################
+#
 # Management functions (overall extraction, rule application)
 #
 ###############################################################################
 
 
-def assign_factuality_values(eventsFeatures, resource_info):
+def get_event_factuality_identifiers(termSpan):
+    '''
+    Function that creates dictionary key for event using its span
+    (at this point, we assume that each event has a unique first term)
+    '''
+    termId = ''
+    #if neither t_ nor t leads to termNr, we have a problem with the NAF file anyway...
+    for term in termSpan:
+        if 't_' in term:
+            termNr = term.lstrip('t_')
+        elif 't' in term:
+            termNr = term.lstrip('t')
+        if termId == '':
+            termId = int(termNr)
+        elif termId > int(termNr):
+            termId = int(termNr)
+    return termId   
+
+
+def assign_factuality_values(eventsFeatures):
     '''
     Function that goes through list of target events and assigns factuality values based on their features
     '''
+    global modals, resource_info
+    #store in dictionary with tid nr as key for ordening output
+    eventFactuality = {}
     for event in eventsFeatures:
         #assigns default values to event
-        myEventFact = AssignedFact()
+        myEventFact = AssignedFact(event.target_span)
         #look at target features
-        apply_target_features(myEventFact, event, resource_info)
-        #look at predicative chain
-
+        apply_target_features(myEventFact, event)
+        #look at predicate chain: modals
+        apply_predicate_chain_features(myEventFact, event, modals)
+        #look at modifiers (for now: both target and chain; should be changed)
+        apply_modifier_target_and_chain_features(myEventFact, event)
+        #look at predicate chain: non-modals
+        apply_predicate_chain_features(myEventFact, event, resource_info)
+        #look at arguments
+        apply_argument_features(myEventFact, event)
+        #get term id:
+        termId = get_event_factuality_identifiers(event.target_span)
+        eventFactuality[termId] = myEventFact
+    return eventFactuality
 
 def extract_features(feature_extractor, target_events):
     '''
@@ -220,8 +356,7 @@ def extract_features(feature_extractor, target_events):
         add_predicate_chain_features(feature_extractor, event, myFeatures)
         events_features.append(myFeatures)
         
-    return event_features
-
+    return events_features
 
 def select_target_events(feature_extractor):
     '''
@@ -233,7 +368,7 @@ def select_target_events(feature_extractor):
     return target_events
 
 
-def run_factuality_module(nafobj, resource_info):
+def run_factuality_module(nafobj):
     '''
     Function that regulates the module. 
     Version 0.1: extracts features and calls rules.
@@ -245,20 +380,26 @@ def run_factuality_module(nafobj, resource_info):
     #2. extract features for all target events
     events_features = extract_features(feature_extractor, target_events)
     #3. apply rules
-    assign_factuality_values(events_features, resource_info)
-
-
+    event_factuality = assign_factuality_values(events_features)
+    #4. create output NAF
+    create_naf_output(nafobj, event_factuality)
 
 def main(argv=None):
     
+    if argv==None:
+        argv=sys.argv
+        
     if len(argv) < 2:
         print('Error:\n Usage: cat input | python rule_based_factuality.py path_to_module > output')
-    else:
+    else:     
+        begintime = time.strftime('%Y-%m-%dT%H:%M:%S%Z')
         nafobj = KafNafParser(sys.stdin)
         lang = nafobj.get_language()
-        my_resource_info = initiate_resources(lang, argv[1])
-        run_factuality_module(nafobj, resource_info)
-    
+        initiate_resources(lang, argv[1])
+        run_factuality_module(nafobj)
+        #add header
+        add_naf_header(nafobj, begintime)
+        nafobj.dump()
 
 
 if __name__ == '__main__':

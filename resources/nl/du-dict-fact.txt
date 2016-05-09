@@ -4,6 +4,7 @@ MOD_AUX
     zullen
     mogen
     moeten
+    gaan
 
 MOD_ADV
     blijkbaar 
