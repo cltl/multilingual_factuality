@@ -1,0 +1,14 @@
+NEAR FUTURE (TODOs for version 1.0): 
+
+
+0. write basic documentation of current system
+
+1. create development corpus:
+- small sets of handmade examples
+- Dutch wikinews articles
+
+2. fix MEANTIME for Dutch (no more overlapping events, make sure all events have factuality)
+
+3. Improve resources based on development corpus
+
+4. Extend code (and structure) for interaction between features

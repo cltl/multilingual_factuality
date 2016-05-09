@@ -17,7 +17,13 @@ cat inputfile | python rule_based_factuality.py > outputfile
 
 ./run_rule_based_on_dir.sh inputdir/ outputdir/ 
 
+## Version:
 
+Version 0.01 is released on May 9th 2016. It is a basic implementation and first creation of resources based on intuition.
+We expect to have many minor revisions in the near future. You will therefore find some version 0.xx in the document.
+
+
+As soon as the resources for at least one language and the rule application system have stabilized, we will release version 1.0
 
 
 ## Content

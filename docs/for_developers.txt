@@ -1,0 +1,9 @@
+Notes for developers:
+
+
+Current versions 0.xx
+
+- resources built on intuition
+- no explicit interaction (basic hierarchical application of rules)
+
+If updating either rules or resources, please make sure you update the version number in the code (global versionnr)
