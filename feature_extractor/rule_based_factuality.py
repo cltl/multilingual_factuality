@@ -314,7 +314,7 @@ def get_event_factuality_identifiers(termSpan):
         elif termId > int(termNr):
             termId = int(termNr)
     if termId == '':
-        print(termSpan, file=sys.stderr)
+        print(termSpan, file==sys.stderr)
     return termId   
 
 
