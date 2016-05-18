@@ -29,12 +29,16 @@ class MyGraph:
     def calculate_root(self):
             
         L = list(self.relations_arriving_to_node.items())
-        L.sort(key=lambda t: t[1])
-        min_freq = L[0][1]
-        # In case there are several with the same minium frequency, we select the one with the highest
-        list_with_min_freq = [(term_id, len(self.G[term_id])) for term_id, freq in L if freq == min_freq]
-        list_with_min_freq.sort(key=lambda t: -t[1])
-        self.root = list_with_min_freq[0][0]
+        if len(L) != 0:
+            L.sort(key=lambda t: t[1])
+            min_freq = L[0][1]
+            # In case there are several with the same minium frequency, we select the one with the highest
+            list_with_min_freq = [(term_id, len(self.G[term_id])) for term_id, freq in L if freq == min_freq]
+            list_with_min_freq.sort(key=lambda t: -t[1])
+        
+            self.root = list_with_min_freq[0][0]
+        else:
+            self.root = None
   
     def get_root(self):
         if self.root is None:
@@ -174,31 +178,35 @@ class FeatureExtractor:
             list_term_ids_to_root = this_graph.find_shortest_id_path(term_id, root_for_sentence)
             if list_term_ids_to_root is None:
                 list_term_ids_to_root = this_graph.find_shortest_id_path(root_for_sentence,term_id)
+                
         
         return list_term_ids_to_root
     
     def get_lemmas_for_list_term_ids(self, list_term_ids):
         list_lemmas = []
-        for term_id in list_term_ids:
-            term_obj = self.obj.get_term(term_id)
-            list_lemmas.append(term_obj.get_lemma())
+        if list_term_ids is not None:
+            for term_id in list_term_ids:
+                term_obj = self.obj.get_term(term_id)
+                list_lemmas.append(term_obj.get_lemma())
         return list_lemmas
              
     def get_morphofeat_for_list_term_ids(self, list_term_ids):
         list_morpho = []
-        for term_id in list_term_ids:
-            term_obj = self.obj.get_term(term_id)
-            list_morpho.append(term_obj.get_morphofeat())
+        if list_term_ids is not None:
+            for term_id in list_term_ids:
+                term_obj = self.obj.get_term(term_id)
+                list_morpho.append(term_obj.get_morphofeat())
         return list_morpho
     
     def get_modifiers_list_term_ids(self, list_term_ids):
         main_list = []
-        for term_id in list_term_ids:
-            this_list = list(self.get_dependencies_and_modifier(term_id))
-            if len(this_list) == 0:
-                main_list.append(None)
-            else:
-                main_list.append(this_list)
+        if list_term_ids is not None:
+            for term_id in list_term_ids:
+                this_list = list(self.get_dependencies_and_modifier(term_id))
+                if len(this_list) == 0:
+                    main_list.append(None)
+                else:
+                    main_list.append(this_list)
         return main_list
     
     def get_argument_components_of_target_verb_as_list_of_ids(self, term_id):
