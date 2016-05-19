@@ -1,3 +1,4 @@
+import sys
 
 relevant_dependencies = {}
 relevant_dependencies['en'] = ['TMP', 'ADV','NMOD']
@@ -9,6 +10,11 @@ class MyGraph:
         self.G = {}
         self.relations_arriving_to_node = {}
         self.root = None
+        self.pos_for_term_id = {}
+        
+    def set_pos_for_term_id_map(self,this_map):
+        self.pos_for_term_id = this_map
+        
         
     def add_node(self, term_from, term_to, relation):
         if term_from not in self.G:
@@ -17,6 +23,7 @@ class MyGraph:
         
         if term_from not in self.relations_arriving_to_node:
             self.relations_arriving_to_node[term_from] = 0
+        
         if term_to not in self.relations_arriving_to_node:
             self.relations_arriving_to_node[term_to] = 0
             
@@ -33,10 +40,22 @@ class MyGraph:
             L.sort(key=lambda t: t[1])
             min_freq = L[0][1]
             # In case there are several with the same minium frequency, we select the one with the highest
-            list_with_min_freq = [(term_id, len(self.G[term_id])) for term_id, freq in L if freq == min_freq]
+            list_with_min_freq = [(term_id, len(self.G.get(term_id,[]))) for term_id, freq in L if freq == min_freq]
             list_with_min_freq.sort(key=lambda t: -t[1])
-        
-            self.root = list_with_min_freq[0][0]
+
+            #If there are still several with the asme value, we select the first one that is a VERB
+            max_value = list_with_min_freq[0][1]
+            selected = [term_id for term_id, freq in list_with_min_freq if freq == max_value]
+            
+            if len(selected) == 1:
+                self.root = selected[0]
+            elif len(selected)>=2:
+                for tid in selected:
+                    if self.pos_for_term_id[tid] == 'verb':
+                        self.root = tid
+                        break
+            else:
+                self.root = None            
         else:
             self.root = None
   
@@ -105,6 +124,7 @@ class FeatureExtractor:
         self.sentence_id_for_term_id = {}
         self.int_offset_for_term_id = {}
         self.graph_for_sentence_id = {}
+        self.pos_for_term_id = {}
         self.__create_indexes()
         
     def __create_indexes(self):
@@ -113,6 +133,7 @@ class FeatureExtractor:
             token_obj = self.obj.get_token(first_token_id)
             self.sentence_id_for_term_id[term.get_id()] = token_obj.get_sent()
             self.int_offset_for_term_id[term.get_id()] = int(token_obj.get_offset())
+            self.pos_for_term_id[term.get_id()] = term.get_pos()
             
             
     def get_list_sorted_by_offset(self,list_term_ids):
@@ -154,6 +175,7 @@ class FeatureExtractor:
                     
     def __create_graph_for_sentence__(self, sentence_id):
         self.graph_for_sentence_id[sentence_id] = MyGraph()
+        self.graph_for_sentence_id[sentence_id].set_pos_for_term_id_map(self.pos_for_term_id)
         for dep in self.obj.get_dependencies():
             node_from = dep.get_from()
             if self.sentence_id_for_term_id[node_from] == sentence_id:
@@ -179,7 +201,6 @@ class FeatureExtractor:
             if list_term_ids_to_root is None:
                 list_term_ids_to_root = this_graph.find_shortest_id_path(root_for_sentence,term_id)
                 
-        
         return list_term_ids_to_root
     
     def get_lemmas_for_list_term_ids(self, list_term_ids):
